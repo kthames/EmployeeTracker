@@ -28,7 +28,7 @@ function main() {
         view(task);
       } 
       if (task=== 'Update Employee Role'){
-        //update(task);
+        updateEmployee();      
       }
       if (task=== 'Add Employee'){
         addEmployee();
@@ -92,6 +92,50 @@ const view = (task) => {
     }); 
 };
 
+const addRole = async () => {
+  let [departments] = await db.promise().query('SELECT name, id AS value FROM department');
+
+  inquirer.prompt([
+    {
+      type: "input",
+      name: "title",
+      message: "What is the title of this role?",
+      validate: nameInput => {
+        if (nameInput) {
+          return true;
+        } else {
+          console.log("Invalid name!");
+          return false;
+        };
+      }
+    },
+    {
+      type: "input",
+      name: "salary",
+      message: "What is the salary for this role?",
+      validate: salaryInput => {
+        if (isNaN(salaryInput)) {
+          console.log("Invalid salary");
+          return false;
+        } else {
+          return true;
+        };
+      }
+    }, 
+    {
+      type: "list",
+      name: "department_id",
+      message: "What is department does this role belong to?",
+      choices: departments
+    }
+  ]).then(answer => {
+    console.log(answer);
+
+    db.promise().query(`INSERT INTO role SET ?`, [answer]);
+    view('View All Roles');
+  })
+}
+
 const addDepartment = () => {
 
   inquirer.prompt([
@@ -121,14 +165,45 @@ const addDepartment = () => {
       return view('View All Departments');
     });
   });
+}
 
+const updateEmployee = async () => {
+  
+  let [roles] = await db.promise().query('SELECT title AS name, id AS value FROM role');
+  let [employees] = await db.promise().query('SELECT CONCAT(first_name, " ", last_name) AS name, id AS value FROM employee');
+  let [managers] = await db.promise().query('SELECT CONCAT(first_name, " ", last_name) AS name, id AS value FROM employee');
+
+  console.log(employees);
+
+  inquirer.prompt([
+    {
+      type: "list",
+      name: "id",
+      message: "Which employee's role would you like to update?",
+      choices: employees
+    }, 
+    {
+      type: "list",
+      name: "role_id",
+      message: "What is the employee's new role?",
+      choices: roles
+    }, 
+    {
+      type: "list",
+      name: "manager_id",
+      message: "Who is the employee's manager?",
+      choices: managers
+    }
+  ]).then(answer => {
+    console.log(answer);
+
+    db.promise().query(`UPDATE employee SET role_id = ${answer.role_id}, manager_id = ${answer.manager_id} WHERE id = ${answer.id}`);
+    view('View All Employees');
+  })
 }
 
 const addEmployee = async () => {
-  let sql = "";
-
   var params = [];
-  var manager = [];
 
   let [roles] = await db.promise().query('SELECT title AS name, id AS value FROM role');
   let [managers] = await db.promise().query('SELECT CONCAT(first_name, " ", last_name) AS name, id AS value FROM employee');
@@ -173,7 +248,6 @@ const addEmployee = async () => {
       choices: managers
     }
   ]).then(answer => {
-    params = [answer.firstName, answer.lastName, answer.roles, answer.managers];
     console.log(answer);
 
     db.promise().query(`INSERT INTO employee SET ?`, [answer]);
@@ -181,8 +255,6 @@ const addEmployee = async () => {
 
   })
 }
-
-
 
 main();
 
