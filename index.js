@@ -1,5 +1,6 @@
 const db = require('./db/connection');
 const inquirer = require('inquirer');
+const cTable = require('console.table');
 
 function main() {
     inquirer.prompt([
@@ -29,9 +30,15 @@ function main() {
       if (task=== 'Update Employee Role'){
         //update(task);
       }
-      if (task=== 'Add Employee' || task=== 'Add Role' || task=== 'Add Department'){
-        //add(task);
+      if (task=== 'Add Employee'){
+        addEmployee();
       } 
+      if (task=== 'Add Role'){
+        addRole();
+      }
+      if (task=== 'Add Department'){
+        addDepartment();
+      }
       if (task === "Exit") {
           process.exit();
       };  
@@ -42,10 +49,10 @@ function main() {
     });
 }
 
-const view = (viewItem) => {
+const view = (task) => {
   let sql = "";
 
-  switch(viewItem) {
+  switch(task) {
       case 'View All Employees':
           sql = `SELECT employee.id, 
                         employee.first_name, 
@@ -60,11 +67,16 @@ const view = (viewItem) => {
                   LEFT JOIN employee manager ON employee.manager_id = manager.id`;
         break;
       case 'View All Departments':
-        sql = 'SELECT * FROM department';
+         sql = `SELECT * FROM department`;
         break;
       case 'View All Roles':
-          sql = 'SELECT * FROM role';
-          break
+          sql = `SELECT role.title,
+                        role.id, 
+                        role.salary, 
+                        department.name AS department
+                  FROM role
+                  LEFT JOIN department ON role.department_id = department.id`;
+          break;
       default:
         console.log('View not completed');
         return
@@ -78,7 +90,99 @@ const view = (viewItem) => {
       console.table(rows);
       return main();
     }); 
+};
+
+const addDepartment = () => {
+
+  inquirer.prompt([
+    {
+      type: "input",
+      name: "name",
+      message: "What is the name of this department?",
+      validate: nameInput => {
+        if (nameInput) {
+          return true;
+        } else {
+          console.log("Please enter a department name");
+          return false;
+        };
+      }
+    }
+  ])
+  .then(answer => {
+    const sql = `INSERT INTO department (name)
+      VALUES (?)`;
+    const params = answer.name;
+    db.query(sql, params, (err) => {
+      if (err) {
+        throw err;
+      }
+      console.log(`Department ${answer.name} added!`);
+      return view('View All Departments');
+    });
+  });
+
 }
+
+const addEmployee = async () => {
+  let sql = "";
+
+  var params = [];
+  var manager = [];
+
+  let [roles] = await db.promise().query('SELECT title AS name, id AS value FROM role');
+  let [managers] = await db.promise().query('SELECT CONCAT(first_name, " ", last_name) AS name, id AS value FROM employee');
+
+  inquirer.prompt([
+    {
+      type: "input",
+      name: "first_name",
+      message: "What is the employee's first name?",
+      validate: nameInput => {
+        if (nameInput) {
+          return true;
+        } else {
+          console.log("Invalid name!");
+          return false;
+        };
+      }
+    },
+    {
+      type: "input",
+      name: "last_name",
+      message: "What is the employee's last name?",
+      validate: nameInput => {
+        if (nameInput) {
+          return true;
+        } else {
+          console.log("Invalid name!");
+          return false;
+        };
+      }
+    }, 
+    {
+      type: "list",
+      name: "role_id",
+      message: "What is the role for this employee?",
+      choices: roles
+    }, 
+    {
+      type: "list",
+      name: "manager_id",
+      message: "Who is the employee's manager?",
+      choices: managers
+    }
+  ]).then(answer => {
+    params = [answer.firstName, answer.lastName, answer.roles, answer.managers];
+    console.log(answer);
+
+    db.promise().query(`INSERT INTO employee SET ?`, [answer]);
+    view('View All Employees');
+
+  })
+}
+
+
 
 main();
 
