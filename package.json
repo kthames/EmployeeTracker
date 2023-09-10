@@ -7,7 +7,9 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "schema": "source db/schema.sql",
+    "seed": "source db/seeds.sql"
   },
   "keywords": [],
   "author": "",
