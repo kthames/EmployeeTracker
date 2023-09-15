@@ -172,11 +172,12 @@ const updateEmployee = async () => {
   let [roles] = await db.promise().query('SELECT title AS name, id AS value FROM role');
   let [employees] = await db.promise().query('SELECT CONCAT(first_name, " ", last_name) AS name, id AS value FROM employee');
   let [managers] = await db.promise().query('SELECT CONCAT(first_name, " ", last_name) AS name, id AS value FROM employee');
-
-  console.log(employees);
+  managers.push({name: "No manager", value: null});
+  //console.log(employees);
 
   inquirer.prompt([
     {
+      
       type: "list",
       name: "id",
       message: "Which employee's role would you like to update?",
@@ -207,6 +208,7 @@ const addEmployee = async () => {
 
   let [roles] = await db.promise().query('SELECT title AS name, id AS value FROM role');
   let [managers] = await db.promise().query('SELECT CONCAT(first_name, " ", last_name) AS name, id AS value FROM employee');
+  managers.push({name: "No manager", value: null});
 
   inquirer.prompt([
     {

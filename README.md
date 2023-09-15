@@ -5,7 +5,7 @@
  [Employee Tracker](https://github.com/kthames/EmployeeTracker)
 ![Employee Tracker](./assets/EmployeeTrackerSS.png)
 
-[Walkthrough Video of the Employee Tracker](https://drive.google.com/file/d/1I5xjnwG5NadL9k80PZoG3_qEMcL5Go2h/view)
+[Walkthrough Video of the Employee Tracker](https://drive.google.com/file/d/1VILw4v13hi6SZoDofsj5FmzM5S2lZKMX/view)
 
 ## Installation
 
@@ -44,3 +44,4 @@ source db/seeds.sql
 npm start
 ```
 Then the prompts will begin.
+
